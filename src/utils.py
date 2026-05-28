@@ -40,7 +40,7 @@ def get_fig_dim(width, fraction=1, aspect_ratio=None):
 
 def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, small_font_size=None, usetex=True, use_defaults=False):
     """Set up matplotlib's RC params for LaTeX plotting."""
-    
+
     if use_defaults:
         matplotlib.rcParams.update(matplotlib.rcParamsDefault)
         plt.rcParams.update(plt.rcParamsDefault)
@@ -48,18 +48,18 @@ def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, sma
 
     if small_font_size is None:
         small_font_size = font_size
-    
+
     # Get available fonts
     import matplotlib.font_manager as fm
     available_fonts = {f.name for f in fm.fontManager.ttflist}
-    
+
     # Define fallback chains for common font families
     font_fallbacks = {
         'Times New Roman': ['Times New Roman', 'Times', 'Liberation Serif', 'DejaVu Serif'],
         'Computer Modern': ['Computer Modern', 'CMU Serif', 'Latin Modern Roman', 'cmr10'],
         'Arial': ['Arial', 'Liberation Sans', 'DejaVu Sans'],
     }
-    
+
     # Try to find the best available font
     actual_font = font_serif
     if font_serif in font_fallbacks:
@@ -80,26 +80,26 @@ def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, sma
     params = {
         'backend': 'ps',
         'text.latex.preamble': r'\usepackage{gensymb} \usepackage{bm}',
-            
+
         'axes.labelsize': font_size,
         'axes.titlesize': font_size,
         'font.size': font_size,
-        
+
         # Optionally set a smaller font size for legends and tick labels
         'legend.fontsize': small_font_size,
         'legend.title_fontsize': small_font_size,
         'xtick.labelsize': small_font_size,
         'ytick.labelsize': small_font_size,
-        
-        'text.usetex': usetex,    
+
+        'text.usetex': usetex,
         'font.family': 'serif',
         'mathtext.fontset': mathtext_font
     }
-    
+
     # Only set font.serif if not using LaTeX (LaTeX handles fonts itself)
     if not usetex:
         params['font.serif'] = actual_font
-    
+
     # Fix the mathtext warning
     if not usetex and 'cm' in actual_font.lower():
         params['axes.formatter.use_mathtext'] = True

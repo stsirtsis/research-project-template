@@ -121,11 +121,14 @@ SLURM_EMAIL_TYPE=$(jq -r '.slurm.email_type // empty' "$CONFIG_FILE")
 SLURM_GRES=$(jq -r '.slurm.gres // empty' "$CONFIG_FILE")
 SLURM_CONSTRAINT=$(jq -r '.slurm.constraint // empty' "$CONFIG_FILE")
 SLURM_EXCLUDE=$(jq -r '.slurm.exclude // empty' "$CONFIG_FILE")
+SLURM_MAX_CONCURRENT=$(jq -r '.slurm.max_concurrent // empty' "$CONFIG_FILE")
 
 mkdir -p "$SLURM_LOG_DIR"
 
 # Build sbatch command with optional parameters
-SBATCH_CMD="sbatch --array=0-$((PARAM_COMBINATIONS - 1))"
+ARRAY_SPEC="0-$((PARAM_COMBINATIONS - 1))"
+[ -n "$SLURM_MAX_CONCURRENT" ] && ARRAY_SPEC+="%$SLURM_MAX_CONCURRENT"
+SBATCH_CMD="sbatch --array=$ARRAY_SPEC"
 SBATCH_CMD+=" --cpus-per-task=$SLURM_CORES"
 SBATCH_CMD+=" --nodes=$SLURM_NODES"
 SBATCH_CMD+=" --time=$SLURM_TIME"

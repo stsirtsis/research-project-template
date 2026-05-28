@@ -29,7 +29,8 @@
             "exclude": "Nodes to exclude (--exclude), leave empty for none",
             "constraint": "Node constraints (--constraint), leave empty for none",
             "gres": "Generic resources like GPUs (--gres), e.g. 'gpu:1', leave empty for none",
-            "julia_path": "Path to Julia bin directory (e.g., '~/.juliaup/bin'). Needed for SLURM since compute nodes don't source .bashrc"
+            "julia_path": "Path to Julia bin directory (e.g., '~/.juliaup/bin'). Needed for SLURM since compute nodes don't source .bashrc",
+            "max_concurrent": "Max array tasks running simultaneously (appended as %N to --array). Leave empty for unlimited."
         },
         "cores": 1,
         "nodes": 1,

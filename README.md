@@ -50,6 +50,18 @@ or equivalently
 
 *Note: The current `Project.toml` contains commonly used packages. Remember to also commit `Manifest.toml` before publishing the project.*
 
+**Julia system image (optional but recommended):** For faster startup times, precompile packages into a system image:
+```bash
+julia --project=. scripts/build_sysimage.jl
+```
+This creates `dyn_sysimage.so` which is automatically used by `run.sh` and `submit_slurm.sh` when running Julia experiments.
+
+**Hugging Face model cache (optional but recommended):** If your experiments use Hugging Face models, it is easier for bookkeeping topre-download them in the project directory:
+```bash
+python scripts/cache_hf_models.py
+```
+Edit `scripts/cache_hf_models.py` to specify which models to download. Models are cached in `models/hf_cache/` (except Mistral models, which use the default HF cache in the user's home directory).
+
 ## Repository structure
 
 ```
@@ -63,7 +75,10 @@ or equivalently
 ├── outputs/
 ├── scripts/
 │   ├── run.sh
-│   └── submit_slurm.sh
+│   ├── submit_slurm.sh
+│   ├── clean.sh
+│   ├── build_sysimage.jl
+│   └── cache_hf_models.py
 └── src/
     ├── executor.py
     ├── experiment.py
@@ -77,6 +92,11 @@ or equivalently
 - `notebooks/` — Jupyter notebooks for analysis and visualization
 - `outputs/` — Experiment results (JSON files)
 - `scripts/` — Shell scripts for running experiments locally or on SLURM
+  - `run.sh` — Run experiments locally
+  - `submit_slurm.sh` — Submit SLURM array jobs
+  - `clean.sh` — Clean log files
+  - `build_sysimage.jl` — Precompile Julia packages into system image (optional)
+  - `cache_hf_models.py` — Download Hugging Face models to local cache (optional)
 - `src/` — Source code:
   - `executor.py` — Reads config, selects parameters, and runs the experiment script
   - `experiment.py` / `experiment.jl` — Main experiment logic (Python/Julia)
@@ -96,7 +116,9 @@ Experiments are configured via JSON files in `configs/`. Each config file has th
 The executor creates a grid of all parameter combinations. Array values in the config
 (e.g., `"N": [10, 20]`, `"prob": [0.1, 0.5]`) are combined into 4 experiments (2×2).
 Each combination runs as a separate experiment, either sequentially (local) or in
-parallel (SLURM array job).
+parallel (SLURM array job). The executor invokes `src/{exec_name}.py` (or `.jl` for Julia experiments)
+with all parameters passed as command-line arguments, where `exec_name` is specified in the
+config file's `executor.exec_name` field (default: `experiment`).
 
 ### Local execution
 

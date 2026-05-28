@@ -74,6 +74,8 @@ fi
 
 source env/bin/activate
 
+export HF_HUB_CACHE="$(pwd)/models/hf_cache"
+
 # Set configuration variables
 if [ -n "$SLURM_ARRAY_TASK_ID" ]; then
     # SLURM worker mode: use env vars passed by sbatch

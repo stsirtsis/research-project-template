@@ -3,6 +3,7 @@ import json
 import itertools
 import os
 import subprocess
+import sys
 
 # Reserved keys (not experiment parameters)
 # Keys starting with '_' are also excluded (used for comments/metadata)
@@ -18,7 +19,7 @@ def is_reserved(key):
 @click.option('--index', type=int, required=True, help="index of the parameter set")
 @click.option('--lang', type=str, default='python', help="language to use for the experiment")
 @click.option('--source', type=str, default='experiment.py', help="name of the source file")
-def experiment(config, name, index, lang, source):
+def execute(config, name, index, lang, source):
 
     # load the config file
     with open(config, "r") as f:
@@ -47,7 +48,7 @@ def experiment(config, name, index, lang, source):
     # inject output_dir from executor config (with default)
     executor_config = config_data.get('executor', {})
     if 'output_dir' not in experiment_params:
-        experiment_params['output_dir'] = executor_config.get('output_dir', 'outputs')
+        experiment_params['output_dir'] = os.path.join(executor_config.get('output_dir', 'outputs'), name)
 
     # auto-generate filename from variable params
     # NOTE: sometimes a parameter value (e.g., a HF model name) may contain "/"
@@ -56,8 +57,16 @@ def experiment(config, name, index, lang, source):
     var_parts = [f"{k}={experiment_params[k]}".replace("/", "_") for k in variable_params.keys()]
     output_filename = f"{exp_name}__{'__'.join(var_parts)}.json"
 
-    # create args string
-    args = ' '.join([f'--{k} "{v}"' for k, v in experiment_params.items()])
+    # create args string - handle booleans as flags (no value)
+    args_list = []
+    for k, v in experiment_params.items():
+        if isinstance(v, bool):
+            if v:  # Only include flag if True
+                args_list.append(f'--{k}')
+            # If False, don't include the flag at all
+        else:
+            args_list.append(f'--{k} "{v}"')
+    args = ' '.join(args_list)
     # check that the lang is either python or julia
     if lang not in ['python', 'julia']:
         raise ValueError(f"Language {lang} is not supported. Supported languages are python and julia.")
@@ -66,13 +75,20 @@ def experiment(config, name, index, lang, source):
     args += f' --output_filename "{output_filename}"'
 
     # create the command
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    venv_python = os.path.join(project_root, 'env', 'bin', 'python')
+    python_exe = venv_python if os.path.exists(venv_python) else sys.executable
     if lang == 'python':
-        command = f'python src/{source} {args}'
+        command = f'{python_exe} src/{source} {args}'
     elif lang == 'julia':
-        command = f'julia --project=. src/{source} {args}'
+        command = f'julia --project=. -J dyn_sysimage.so src/{source} {args}'
+
+    # create output directory (from executor config)
+    output_dir = os.path.join(executor_config.get('output_dir', 'outputs'), name)
+    os.makedirs(output_dir, exist_ok=True)
 
     # create log directory (from executor config)
-    log_dir = executor_config.get('log_dir', 'outputs/logs')
+    log_dir = os.path.join(executor_config.get('log_dir', 'outputs/logs'), name)
     os.makedirs(log_dir, exist_ok=True)
 
     # log files named to match JSON output
@@ -82,7 +98,7 @@ def experiment(config, name, index, lang, source):
 
     # run with output redirection
     with open(stdout_path, 'w') as stdout_file, open(stderr_path, 'w') as stderr_file:
-        result = subprocess.run(
+        _ = subprocess.run(
             command,
             shell=True,
             stdout=stdout_file,
@@ -94,6 +110,4 @@ def experiment(config, name, index, lang, source):
 
 if __name__ == '__main__':
     # comment for testing
-    experiment()
-    # uncomment for testing
-    # experiment('configs/experiment.json', 0)
+    execute()
