@@ -29,6 +29,7 @@ function single_seed_experiment(rng, N, iterations, prob)
     winner_results = zeros(Int, iterations)
 
     println("Computing...")
+    flush(stdout)
     for i in 1:iterations
         # perform computation (now passing rng)
         votes, abstained = compute(N, prob, rng)
@@ -144,12 +145,18 @@ function experiment(args)
         "seed_results" => seed_results
     )
 
+    # create output directory
+    # this is not done in the executor, so that we don't create output directories for parameter combinations that are scheduled on slurm but perhaps not valid
+    mkpath(output_dir)
+
     println("Saving results...")
+    flush(stdout)
     open(joinpath(output_dir, output_filename), "w") do f
         write(f, JSON.json(output, 2))
     end
 
     println("Done!")
+    flush(stdout)
 end
 
 # uncomment the following line for testing

@@ -56,15 +56,16 @@ julia --project=. scripts/build_sysimage.jl
 ```
 This creates `dyn_sysimage.so` which is automatically used by `run.sh` and `submit_slurm.sh` when running Julia experiments.
 
-**Hugging Face model cache (optional but recommended):** If your experiments use Hugging Face models, it is easier for bookkeeping topre-download them in the project directory:
+**Hugging Face model cache (optional but recommended):** If your experiments use Hugging Face models, it is easier for bookkeeping to pre-download them in the project directory:
 ```bash
 python scripts/cache_hf_models.py
 ```
-Edit `scripts/cache_hf_models.py` to specify which models to download. Models are cached in `models/hf_cache/` (except Mistral models, which use the default HF cache in the user's home directory).
+Edit `scripts/cache_hf_models.py` to specify which models to download. Models are cached in `models/hf_cache/`.
 
 ## Repository structure
 
 ```
+├── secrets.json
 ├── configs/
 │   └── experiment.json
 ├── data/
@@ -86,6 +87,7 @@ Edit `scripts/cache_hf_models.py` to specify which models to download. Models ar
     └── utils.py
 ```
 
+- `secrets.json` — API keys used by the experiment scripts (loaded via `load_api_key()` in `src/utils.py`, with environment variables as fallback). **If you are going to use real API keys, make sure to uncomment the `secrets.json` line in `.gitignore` so the real file is never committed.**
 - `configs/` — JSON files specifying experiment parameters
 - `data/` — Raw data (`original/`) and their polished/organized versions (`processed/`)
 - `figures/` — Generated figures
@@ -110,6 +112,8 @@ Experiments are configured via JSON files in `configs/`. Each config file has th
 - **Experiment parameters** (top-level): Fixed values (e.g., `"iterations": 10`) or arrays for variables (e.g., `"N": [10, 20]`) that are the main parameters passed to the Python/Julia script
 - **Executor settings** (`executor`): Values that specify the name of the Python/Julia script to run, the output directory, and the logging directory
 - **SLURM settings**: Resource requirements for execution on compute clusters (see `_comments` in the `slurm` section for parameter descriptions) --- these are simply ignored if the experiment is executed locally.
+
+The keys `executor` and `slurm`, as well as any key starting with `_` (e.g. `_comments`), are reserved: they are not passed to the experiment script as parameters.
 
 ### How it works
 
@@ -178,7 +182,7 @@ Monitor jobs with `squeue -u $USER` and check logs in the `slurm.log_dir` specif
 
 ### Output
 
-Results are saved to the `output_dir` specified in the config (default: `outputs/`). Executor logs are saved to `log_dir` (default: `outputs/logs`). Output filenames are auto-generated from variable parameters:
+Results are saved to `{output_dir}/{exp_name}/` (default: `outputs/{exp_name}/`). Executor logs are saved to `{log_dir}/{exp_name}/` (default: `outputs/logs/{exp_name}/`). The executor creates only the log directory. The experiment script is responsible for creating its output directory. Output filenames are auto-generated from variable parameters:
 
 ```
 {exp_name}__{param1}={value1}__{param2}={value2}.json

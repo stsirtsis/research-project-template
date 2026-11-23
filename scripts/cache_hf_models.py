@@ -1,46 +1,47 @@
-#!/usr/bin/env python3
 """
 Download all models needed for experiments.
-Most models are cached in models/hf_cache/ under the project root.
-Ministral-3 is downloaded to the default HF cache (~/.cache/huggingface/hub)
-because MistralCommonBackend does not respect HF_HUB_CACHE.
-If a model is already fully cached, does nothing.
+Models are cached in models/hf_cache/ under the project root.
+If a model is already fully cached, the script does nothing.
 
-NOTE: Modify the MISTRAL_MODELS and LLM_MODELS lists below to include
-the models required for your specific experiments.
+NOTE: Modify the MODELS list below to include the models required for the project's specific experiments. 
 """
 
 import os
 import pathlib
 
+from huggingface_hub import scan_cache_dir
+from huggingface_hub import snapshot_download
 _project_root = pathlib.Path(__file__).resolve().parent.parent
 _project_cache = str(_project_root / "models" / "hf_cache")
 
-# Models that must go to the default HF cache (MistralCommonBackend ignores HF_HUB_CACHE)
-# Add your Mistral model IDs here
-MISTRAL_MODELS = [
-    "mistralai/Ministral-3-8B-Instruct-2512",
-]
-
-# All other models go to the project cache
-# Add your model IDs here
-LLM_MODELS = [
+# Add your model HF IDs here
+MODELS = [
     "meta-llama/Llama-3.1-8B-Instruct",
 ]
 
 
-def get_cached_repos(cache_dir=None):
-    from huggingface_hub import scan_cache_dir
+def get_cached_repos(cache_dir):
+    """Return repo_ids that are fully cached.
+
+    huggingface_hub writes each file to a `.incomplete` blob during download and
+    only renames it once finished, so a leftover `.incomplete` blob means the
+    repo must be re-downloaded.
+    """
     try:
         cache_info = scan_cache_dir(cache_dir)
-        return {repo.repo_id for repo in cache_info.repos}
     except Exception:
         return set()
+    complete = set()
+    for repo in cache_info.repos:
+        if list(repo.repo_path.glob("blobs/*.incomplete")):
+            print(f"[Model] {repo.repo_id} — found incomplete blob(s) from an interrupted download, will retry.")
+        else:
+            complete.add(repo.repo_id)
+    return complete
 
 
-def download(kind, model_id, cache_dir=None):
-    from huggingface_hub import snapshot_download
-    print(f"[{kind}] {model_id} — downloading...")
+def download(model_id, cache_dir):
+    print(f"[Model] {model_id} — downloading...")
     try:
         path = snapshot_download(model_id, cache_dir=cache_dir)
         print(f"  -> Saved to {path}")
@@ -49,22 +50,13 @@ def download(kind, model_id, cache_dir=None):
 
 
 def main():
-    # Mistral: default HF cache
-    mistral_cached = get_cached_repos()
-    for model_id in MISTRAL_MODELS:
-        if model_id in mistral_cached:
-            print(f"[LLM] {model_id} — already cached, skipping.")
-        else:
-            download("LLM", model_id, cache_dir=None)
-
-    # Everything else: project cache
     os.environ["HF_HUB_CACHE"] = _project_cache
-    project_cached = get_cached_repos(_project_cache)
-    for kind, model_id in [("LLM", m) for m in LLM_MODELS]:
-        if model_id in project_cached:
-            print(f"[{kind}] {model_id} — already cached, skipping.")
+    cached = get_cached_repos(_project_cache)
+    for model_id in MODELS:
+        if model_id in cached:
+            print(f"[Model] {model_id} — already cached, skipping.")
         else:
-            download(kind, model_id, cache_dir=_project_cache)
+            download(model_id, cache_dir=_project_cache)
 
 
 if __name__ == "__main__":

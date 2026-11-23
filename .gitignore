@@ -137,24 +137,32 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Ignore the outputs
-outputs/**/*json
-outputs/slurm_logs/*out
-outputs/slurm_logs/*err
-outputs/logs/*out
-outputs/logs/*err
+# Ignore the outputs (keep the .placeholder files for GitHub)
+outputs/**
+!outputs/**/
+!outputs/**/.placeholder
 
 # Ignore the figures
 figures/*pdf
 figures/*png
-figures/*tif
 
 # Ignore the backups
 backups*
 
-# Ignore the data
+# Ignore the data (keep data/original/.placeholder for GitHub)
+data/original/*
+!data/original/.placeholder
 data/**/*json
 data/**/*csv
 
+# Ignore downloaded models (keep the .placeholder)
+models/hf_cache/*
+!models/hf_cache/.placeholder
+
 # Ignore vscode things
 **.DS_Store
+.vscode/**
+
+# API keys are stored in secrets.json, currently committed with a dummy key
+# Uncomment the line below before adding real keys so they are never committed
+# secrets.json

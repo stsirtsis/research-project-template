@@ -1,6 +1,14 @@
 import numpy as np
 import click
 import json
+import logging
+import os
+import sys
+
+from utils import set_seeds
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
+logger = logging.getLogger(__name__)
 
 # convert numpy types to native python types
 def convert_to_native(obj):
@@ -38,7 +46,7 @@ def single_seed_experiment(rng, N, iterations, prob):
     abstained_results = np.zeros(iterations, dtype=int)
     winner_results = np.zeros(iterations, dtype=int)
 
-    print('Computing...')
+    logger.info('Computing...')
     for i in range(iterations):
         # perform computation
         votes, abstained = compute(N, prob, rng)
@@ -77,6 +85,9 @@ def experiment(exp_name, output_dir, output_filename, n, iterations, prob, maste
     if N < 2:
         raise ValueError('N must be greater than 1')
 
+    # set seeds for reproducibility
+    set_seeds(master_seed)
+
     # determine seeds to use
     if num_seeds <= 0:
         # single-seed mode: use master_seed directly
@@ -107,14 +118,18 @@ def experiment(exp_name, output_dir, output_filename, n, iterations, prob, maste
         'seed_results': seed_results
     }
 
-    print('Converting to native Python types...')
+    logger.info('Converting to native Python types...')
     output = convert_to_native(output)
 
-    print('Saving results...')
+    # create output directory
+    # this is not done in the executor, so that we don't create output directories for parameter combinations that are scheduled on slurm but perhaps not valid
+    os.makedirs(output_dir, exist_ok=True)
+
+    logger.info('Saving results...')
     with open(f'{output_dir}/{output_filename}', 'w') as f:
         json.dump(output, f, indent=2)
 
-    print('Done!')
+    logger.info('Done!')
 
     return
 

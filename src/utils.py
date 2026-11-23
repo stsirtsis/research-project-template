@@ -1,5 +1,32 @@
+import json
+import os
+import random
+
 import matplotlib.pyplot as plt
 import matplotlib
+
+SECRETS_FILE = "secrets.json"
+
+def load_api_key(key_name, secrets_file=SECRETS_FILE):
+    """Return an API key from the local secrets file, falling back to the environment variable."""
+    if os.path.exists(secrets_file):
+        with open(secrets_file, 'r') as f:
+            secrets = json.load(f)
+        if secrets.get(key_name):
+            return secrets[key_name]
+    key = os.environ.get(key_name)
+    if not key:
+        raise RuntimeError(f"{key_name} not found in {secrets_file} or as an environment variable.")
+    return key
+
+def set_seeds(seed):
+    """Set random seeds for reproducibility (random, numpy, torch)."""
+    import numpy as np
+    import torch
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 def get_fig_dim(width, fraction=1, aspect_ratio=None):
     """Set figure dimensions to avoid scaling in LaTeX.

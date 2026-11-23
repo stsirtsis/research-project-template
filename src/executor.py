@@ -19,7 +19,7 @@ def is_reserved(key):
 @click.option('--index', type=int, required=True, help="index of the parameter set")
 @click.option('--lang', type=str, default='python', help="language to use for the experiment")
 @click.option('--source', type=str, default='experiment.py', help="name of the source file")
-def execute(config, name, index, lang, source):
+def experiment(config, name, index, lang, source):
 
     # load the config file
     with open(config, "r") as f:
@@ -83,11 +83,8 @@ def execute(config, name, index, lang, source):
     elif lang == 'julia':
         command = f'julia --project=. -J dyn_sysimage.so src/{source} {args}'
 
-    # create output directory (from executor config)
-    output_dir = os.path.join(executor_config.get('output_dir', 'outputs'), name)
-    os.makedirs(output_dir, exist_ok=True)
-
     # create log directory (from executor config)
+    # NOTE: the output directory is created by the experiment script itself
     log_dir = os.path.join(executor_config.get('log_dir', 'outputs/logs'), name)
     os.makedirs(log_dir, exist_ok=True)
 
@@ -96,18 +93,19 @@ def execute(config, name, index, lang, source):
     stdout_path = f"{log_dir}/{log_base}.out"
     stderr_path = f"{log_dir}/{log_base}.err"
 
-    # run with output redirection
+    # run with output redirection so that SLURM sees failures
     with open(stdout_path, 'w') as stdout_file, open(stderr_path, 'w') as stderr_file:
-        _ = subprocess.run(
+        result = subprocess.run(
             command,
             shell=True,
             stdout=stdout_file,
-            stderr=stderr_file
+            stderr=stderr_file,
+            check=False
         )
 
-    return
+    sys.exit(result.returncode)
 
 
 if __name__ == '__main__':
     # comment for testing
-    execute()
+    experiment()
