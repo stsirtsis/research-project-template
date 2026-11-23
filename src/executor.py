@@ -102,12 +102,14 @@ def experiment(config, name, index, lang, source):
 
     # create the command
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    venv_python = os.path.join(project_root, "env", "bin", "python")
+    # use the uv-managed virtualenv (.venv)
+    venv_python = os.path.join(project_root, ".venv", "bin", "python")
     python_exe = venv_python if os.path.exists(venv_python) else sys.executable
+    src_path = os.path.join(project_root, "src", source)
     if lang == "python":
-        command = f"{python_exe} src/{source} {args}"
+        command = f"{python_exe} {src_path} {args}"
     elif lang == "julia":
-        command = f"julia --project=. -J dyn_sysimage.so src/{source} {args}"
+        command = f"julia --project=. -J dyn_sysimage.so {src_path} {args}"
 
     # create log directory (from executor config)
     # NOTE: the output directory is created by the experiment script itself

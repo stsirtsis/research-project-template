@@ -72,7 +72,8 @@ if [ -z "$SLURM_ARRAY_TASK_ID" ]; then
   fi
 fi
 
-source env/bin/activate
+# Python interpreter from the uv-managed .venv. The environment is assumed to be already set up (see README).
+PYTHON=".venv/bin/python"
 
 export HF_HUB_CACHE="$(pwd)/models/hf_cache"
 
@@ -114,7 +115,7 @@ if [ -n "$SLURM_ARRAY_TASK_ID" ] && [ "$EXPERIMENT_LANG" == "julia" ]; then
 fi
 
 # Determine source file from config's executable field
-SCRIPT_NAME=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE')).get('executor', {}).get('exec_name', 'experiment'))")
+SCRIPT_NAME=$($PYTHON -c "import json; print(json.load(open('$CONFIG_FILE')).get('executor', {}).get('exec_name', 'experiment'))")
 if [ "$EXPERIMENT_LANG" == "python" ]; then
   SRC="${SCRIPT_NAME}.py"
 elif [ "$EXPERIMENT_LANG" == "julia" ]; then
@@ -123,7 +124,7 @@ fi
 
 if [ -n "$SLURM_ARRAY_TASK_ID" ]; then
   # SLURM worker mode: run single experiment
-  python src/executor.py --config="$CONFIG_FILE" --name="$NAME" --index="$SLURM_ARRAY_TASK_ID" --lang="$EXPERIMENT_LANG" --source="$SRC"
+  $PYTHON src/executor.py --config="$CONFIG_FILE" --name="$NAME" --index="$SLURM_ARRAY_TASK_ID" --lang="$EXPERIMENT_LANG" --source="$SRC"
 else
   # Local mode: loop through all combinations
   PARAM_COMBINATIONS=$(jq -r '
@@ -136,8 +137,6 @@ else
   echo "Running $PARAM_COMBINATIONS experiments locally..."
   for INDEX in $(seq 0 $((PARAM_COMBINATIONS - 1))); do
     echo "[$((INDEX + 1))/$PARAM_COMBINATIONS]"
-    python src/executor.py --config="$CONFIG_FILE" --name="$NAME" --index="$INDEX" --lang="$EXPERIMENT_LANG" --source="$SRC"
+    $PYTHON src/executor.py --config="$CONFIG_FILE" --name="$NAME" --index="$INDEX" --lang="$EXPERIMENT_LANG" --source="$SRC"
   done
 fi
-
-deactivate

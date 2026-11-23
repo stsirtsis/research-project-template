@@ -1,3 +1,6 @@
+# Default Python packages for the template.
+# Edit this list for your project, then install it into the uv environment with:
+#   uv add -r requirements.txt
 jupyter
 matplotlib
 seaborn

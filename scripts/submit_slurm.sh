@@ -81,8 +81,6 @@ if [ -z "$NAME" ]; then
   exit 2
 fi
 
-source env/bin/activate
-
 # Set configuration variables
 EXPERIMENT_LANG="${ARG_LANG:-${EXPERIMENT_LANG:-python}}"
 CONFIG_FILE="configs/${NAME}.json"
@@ -157,5 +155,3 @@ if [ "$DRY_RUN" = true ]; then
 else
   eval $SBATCH_CMD
 fi
-
-deactivate

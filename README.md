@@ -23,15 +23,25 @@ One paragraph motivating the project. This can be, for example, the paper abstra
 
 ### Python
 
-All experiments were performed using Python 3.XX. To create a virtual environment and install dependencies:
+The template uses [uv](https://docs.astral.sh/uv/) to manage the Python environment and dependencies. To install uv and set up the project:
 
 ```bash
-python3 -m venv env
-source env/bin/activate
-pip install -r requirements.txt
+# 1. Install uv (https://docs.astral.sh/uv/getting-started/installation/)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Initialize a uv project with your preferred Python version
+#    (--bare is used to tell uv not to add template python files)
+uv init --bare --python 3.13
+
+# 3. Install the default packages listed in requirements.txt
+#    This creates uv.lock and the .venv virtual environment
+uv add -r requirements.txt
 ```
 
-_Note: The current `requirements.txt` contains commonly used packages. Remember to run `pip freeze > requirements.txt` before publishing the project._
+- The `--python` flag sets the minimum supported version and the interpreter uv will use (adjust this depending on the project -- 3.13 is a good default at the moment).
+- The current `requirements.txt` contains commonly used packages; `uv add -r requirements.txt` imports them into `pyproject.toml`. After setup, manage dependencies with `uv add <package>` / `uv remove <package>` (they update `pyproject.toml` and `uv.lock`).
+- Commit `uv.lock` in your project for reproducibility (`.venv/` is gitignored).
+- Run a one-off command in the environment with `uv run python <script>` (or activate manually with `source .venv/bin/activate`). The run scripts use `.venv` automatically.
 
 ### Julia
 
@@ -50,7 +60,7 @@ or equivalently
 ] instantiate
 ```
 
-_Note: The current `Project.toml` contains commonly used packages. Remember to also commit `Manifest.toml` before publishing the project._
+_Note: The current `JuliaProject.toml` contains commonly used packages. Remember to also commit `Manifest.toml` before publishing the project._
 
 **Julia system image (optional but recommended):** For faster startup times, precompile packages into a system image:
 
@@ -63,7 +73,7 @@ This creates `dyn_sysimage.so` which is automatically used by `run.sh` and `subm
 **Hugging Face model cache (optional but recommended):** If your experiments use Hugging Face models, it is easier for bookkeeping to pre-download them in the project directory:
 
 ```bash
-python scripts/cache_hf_models.py
+uv run python scripts/cache_hf_models.py
 ```
 
 Edit `scripts/cache_hf_models.py` to specify which models to download. Models are cached in `models/hf_cache/`.
@@ -72,12 +82,16 @@ Edit `scripts/cache_hf_models.py` to specify which models to download. Models ar
 
 ```
 ├── secrets.json
+├── requirements.txt
+├── JuliaProject.toml
 ├── configs/
 │   └── experiment.json
 ├── data/
 │   ├── original/
 │   └── processed/
 ├── figures/
+├── models/
+│   └── hf_cache/
 ├── notebooks/
 ├── outputs/
 ├── scripts/
@@ -94,9 +108,12 @@ Edit `scripts/cache_hf_models.py` to specify which models to download. Models ar
 ```
 
 - `secrets.json` — API keys used by the experiment scripts (loaded via `load_api_key()` in `src/utils.py`, with environment variables as fallback). **If you are going to use real API keys, make sure to uncomment the `secrets.json` line in `.gitignore` so the real file is never committed.**
+- `requirements.txt` — Default Python packages, imported into the uv project during setup
+- `JuliaProject.toml` — Julia package dependencies (see [Dependencies](#dependencies)); commit the generated `Manifest.toml` when publishing
 - `configs/` — JSON files specifying experiment parameters
 - `data/` — Raw data (`original/`) and their polished/organized versions (`processed/`)
 - `figures/` — Generated figures
+- `models/` — Local Hugging Face model cache (`hf_cache/`, filled by `scripts/cache_hf_models.py`)
 - `notebooks/` — Jupyter notebooks for analysis and visualization
 - `outputs/` — Experiment results (JSON files)
 - `scripts/` — Shell scripts for running experiments locally or on SLURM
@@ -165,7 +182,8 @@ By default, this runs `configs/experiment.json` using Python.
 To submit experiments as a SLURM array job:
 
 1. Configure SLURM settings in your config file (e.g., `configs/experiment.json`)
-2. Submit the job:
+2. Make sure the uv environment is set up on the login node (see [Dependencies](#dependencies)) — compute nodes use `.venv/bin/python` directly via the shared filesystem and do not need uv installed
+3. Submit the job:
 
 ```bash
 ./scripts/submit_slurm.sh
