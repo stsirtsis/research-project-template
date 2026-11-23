@@ -3,14 +3,14 @@ Download all models needed for experiments.
 Models are cached in models/hf_cache/ under the project root.
 If a model is already fully cached, the script does nothing.
 
-NOTE: Modify the MODELS list below to include the models required for the project's specific experiments. 
+NOTE: Modify the MODELS list below to include the models required for the project's specific experiments.
 """
 
 import os
 import pathlib
 
-from huggingface_hub import scan_cache_dir
-from huggingface_hub import snapshot_download
+from huggingface_hub import scan_cache_dir, snapshot_download
+
 _project_root = pathlib.Path(__file__).resolve().parent.parent
 _project_cache = str(_project_root / "models" / "hf_cache")
 
@@ -34,7 +34,9 @@ def get_cached_repos(cache_dir):
     complete = set()
     for repo in cache_info.repos:
         if list(repo.repo_path.glob("blobs/*.incomplete")):
-            print(f"[Model] {repo.repo_id} — found incomplete blob(s) from an interrupted download, will retry.")
+            print(
+                f"[Model] {repo.repo_id} — found incomplete blob(s) from an interrupted download, will retry."
+            )
         else:
             complete.add(repo.repo_id)
     return complete

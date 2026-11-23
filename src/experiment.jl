@@ -3,7 +3,6 @@ using JSON
 using Statistics
 using ArgParse
 
-# FIX: Pass rng to compute function to use seeded randomness
 function compute(N, prob, rng)
 
     votes = zeros(Int, N)

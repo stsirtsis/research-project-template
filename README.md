@@ -2,13 +2,13 @@
 
 This repository serves as a template for research projects. It provides a structured way to organize data, experiment parameters, source code, and results. Additionally, it includes scripts for running experiments both locally and on SLURM clusters. The following sections act both as placeholders and as a quick start guide for running experiments using the provided scripts. Any of the following content can be edited and adapted for the specific project.
 
-__Contents__:
+**Contents**:
+
 - [Introduction](#introduction)
 - [Dependencies](#dependencies)
 - [Repository structure](#repository-structure)
 - [Running experiments](#running-experiments)
 - [Contact & attribution](#contact--attribution)
-
 
 ## Introduction
 
@@ -22,8 +22,8 @@ One paragraph motivating the project. This can be, for example, the paper abstra
 ## Dependencies
 
 ### Python
-All experiments were performed using Python 3.XX. To create a virtual environment and install dependencies:
 
+All experiments were performed using Python 3.XX. To create a virtual environment and install dependencies:
 
 ```bash
 python3 -m venv env
@@ -31,35 +31,41 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-*Note: The current `requirements.txt` contains commonly used packages. Remember to run `pip freeze > requirements.txt` before publishing the project.*
+_Note: The current `requirements.txt` contains commonly used packages. Remember to run `pip freeze > requirements.txt` before publishing the project._
 
 ### Julia
-All experiments were performed using Julia 1.XX.YY. To install dependencies, open the Julia REPL and run:
 
+All experiments were performed using Julia 1.XX.YY. To install dependencies, open the Julia REPL and run:
 
 ```julia
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
 ```
+
 or equivalently
+
 ```julia
 ] activate .
 ] instantiate
 ```
 
-*Note: The current `Project.toml` contains commonly used packages. Remember to also commit `Manifest.toml` before publishing the project.*
+_Note: The current `Project.toml` contains commonly used packages. Remember to also commit `Manifest.toml` before publishing the project._
 
 **Julia system image (optional but recommended):** For faster startup times, precompile packages into a system image:
+
 ```bash
 julia --project=. scripts/build_sysimage.jl
 ```
+
 This creates `dyn_sysimage.so` which is automatically used by `run.sh` and `submit_slurm.sh` when running Julia experiments.
 
 **Hugging Face model cache (optional but recommended):** If your experiments use Hugging Face models, it is easier for bookkeeping to pre-download them in the project directory:
+
 ```bash
 python scripts/cache_hf_models.py
 ```
+
 Edit `scripts/cache_hf_models.py` to specify which models to download. Models are cached in `models/hf_cache/`.
 
 ## Repository structure
@@ -109,6 +115,7 @@ Edit `scripts/cache_hf_models.py` to specify which models to download. Models ar
 ### Configuration
 
 Experiments are configured via JSON files in `configs/`. Each config file has three sections:
+
 - **Experiment parameters** (top-level): Fixed values (e.g., `"iterations": 10`) or arrays for variables (e.g., `"N": [10, 20]`) that are the main parameters passed to the Python/Julia script
 - **Executor settings** (`executor`): Values that specify the name of the Python/Julia script to run, the output directory, and the logging directory
 - **SLURM settings**: Resource requirements for execution on compute clusters (see `_comments` in the `slurm` section for parameter descriptions) --- these are simply ignored if the experiment is executed locally.
@@ -135,11 +142,13 @@ To run all parameter combinations locally:
 By default, this runs `configs/experiment.json` using Python.
 
 **Options:**
+
 - `-n, --name NAME` — Experiment name (required). It tells the executor to look for the config `configs/NAME.json` and the python/julia script uses that name as a prefix for output files.
 - `-l, --lang LANG` — Language: `python` or `julia` (default: `python`)
 - `-h, --help` — Show help message
 
 **Examples:**
+
 ```bash
 # Use Julia instead of Python
 ./scripts/run.sh -n experiment -l julia
@@ -163,9 +172,11 @@ To submit experiments as a SLURM array job:
 ```
 
 **Options** are the same as `run.sh`, plus:
+
 - `-d, --dry-run` — Preview the sbatch command without executing
 
 **Examples:**
+
 ```bash
 # Preview what would be submitted
 ./scripts/submit_slurm.sh -n experiment --dry-run
@@ -197,5 +208,7 @@ If you use this code in your research, please cite:
 ```bibtex
 <!-- Insert your paper's BibTeX here -->
 ```
+
 ---
-*A last note: If you have any questions about this repository, spot any bugs, or there is something you would like to see improved, please write me an email (see [https://stsirtsis.github.io/](https://stsirtsis.github.io/) for my address).*
+
+_A last note: If you have any questions about this repository, spot any bugs, or there is something you would like to see improved, please write me an email (see [https://stsirtsis.github.io/](https://stsirtsis.github.io/) for my address)._

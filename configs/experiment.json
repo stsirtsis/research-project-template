@@ -1,50 +1,50 @@
 {
-    "master_seed": 42,
-    "num_seeds": 0,
-    "iterations": 10,
-    "N": [10, 20],
-    "prob": [0.1, 0.5],
-    "executor": {
-        "_comments": {
-            "exec_name": "Name of the script to run (without extension). The script is expected in src/",
-            "output_dir": "Directory for experiment results (default: outputs/)",
-            "log_dir": "Directory for executor stdout/stderr logs (default: outputs/logs)"
-        },
-        "exec_name": "experiment",
-        "output_dir": "outputs",
-        "log_dir": "outputs/logs"
+  "master_seed": 42,
+  "num_seeds": 0,
+  "iterations": 10,
+  "N": [10, 20],
+  "prob": [0.1, 0.5],
+  "executor": {
+    "_comments": {
+      "exec_name": "Name of the script to run (without extension). The script is expected in src/",
+      "output_dir": "Directory for experiment results (default: outputs/)",
+      "log_dir": "Directory for executor stdout/stderr logs (default: outputs/logs)"
     },
-    "slurm": {
-        "_comments": {
-            "cores": "CPUs per task (--cpus-per-task)",
-            "nodes": "Number of nodes (--nodes)",
-            "time": "Max runtime in D-HH:MM format (--time)",
-            "memory": "Memory per job (--mem)",
-            "partition": "SLURM partition (--partition), leave empty for default",
-            "account": "Account/project for billing (--account), leave empty if not required",
-            "email": "Email for notifications (--mail-user), leave empty to disable",
-            "email_type": "When to email: NONE, BEGIN, END, FAIL, ALL (--mail-type)",
-            "log_dir": "Directory for SLURM stdout/stderr logs (default: outputs/slurm_logs)",
-            "job_name": "Job name shown in squeue (--job-name)",
-            "exclude": "Nodes to exclude (--exclude), leave empty for none",
-            "constraint": "Node constraints (--constraint), leave empty for none",
-            "gres": "Generic resources like GPUs (--gres), e.g. 'gpu:1', leave empty for none",
-            "julia_path": "Path to Julia bin directory (e.g., '~/.juliaup/bin'). Needed for SLURM since compute nodes don't source .bashrc",
-            "max_concurrent": "Max array tasks running simultaneously. Leave empty for unlimited."
-        },
-        "cores": 1,
-        "nodes": 1,
-        "time": "0-00:30",
-        "memory": "5G",
-        "partition": "cpu-batch",
-        "account": "",
-        "email": "",
-        "email_type": "FAIL",
-        "log_dir": "outputs/slurm_logs",
-        "job_name": "experiment",
-        "exclude": "",
-        "constraint": "",
-        "gres": "",
-        "julia_path": "~/.juliaup/bin"
-    }
+    "exec_name": "experiment",
+    "output_dir": "outputs",
+    "log_dir": "outputs/logs"
+  },
+  "slurm": {
+    "_comments": {
+      "cores": "CPUs per task (--cpus-per-task)",
+      "nodes": "Number of nodes (--nodes)",
+      "time": "Max runtime in D-HH:MM format (--time)",
+      "memory": "Memory per job (--mem)",
+      "partition": "SLURM partition (--partition), leave empty for default",
+      "account": "Account/project for billing (--account), leave empty if not required",
+      "email": "Email for notifications (--mail-user), leave empty to disable",
+      "email_type": "When to email: NONE, BEGIN, END, FAIL, ALL (--mail-type)",
+      "log_dir": "Directory for SLURM stdout/stderr logs (default: outputs/slurm_logs)",
+      "job_name": "Job name shown in squeue (--job-name)",
+      "exclude": "Nodes to exclude (--exclude), leave empty for none",
+      "constraint": "Node constraints (--constraint), leave empty for none",
+      "gres": "Generic resources like GPUs (--gres), e.g. 'gpu:1', leave empty for none",
+      "julia_path": "Path to Julia bin directory (e.g., '~/.juliaup/bin'). Needed for SLURM since compute nodes don't source .bashrc",
+      "max_concurrent": "Max array tasks running simultaneously. Leave empty for unlimited."
+    },
+    "cores": 1,
+    "nodes": 1,
+    "time": "0-00:30",
+    "memory": "5G",
+    "partition": "cpu-batch",
+    "account": "",
+    "email": "",
+    "email_type": "FAIL",
+    "log_dir": "outputs/slurm_logs",
+    "job_name": "experiment",
+    "exclude": "",
+    "constraint": "",
+    "gres": "",
+    "julia_path": "~/.juliaup/bin"
+  }
 }

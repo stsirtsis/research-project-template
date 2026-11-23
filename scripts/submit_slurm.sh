@@ -4,7 +4,7 @@
 set -e
 
 show_help() {
-    cat << 'EOF'
+  cat <<'EOF'
 Usage: submit_slurm.sh -n NAME [OPTIONS]
 
 Submit experiments as a SLURM array job.
@@ -33,42 +33,42 @@ DRY_RUN=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        -n|--name)
-            ARG_NAME="$2"
-            shift 2
-            ;;
-        --name=*)
-            ARG_NAME="${1#*=}"
-            shift
-            ;;
-        -l|--lang)
-            ARG_LANG="$2"
-            shift 2
-            ;;
-        --lang=*)
-            ARG_LANG="${1#*=}"
-            shift
-            ;;
-        -d|--dry-run)
-            DRY_RUN=true
-            shift
-            ;;
-        -h|--help)
-            show_help
-            exit 0
-            ;;
-        -*)
-            echo "Error: Unknown option $1" >&2
-            echo "Try 'submit_slurm.sh --help' for more information." >&2
-            exit 2
-            ;;
-        *)
-            echo "Error: Unexpected argument '$1'" >&2
-            echo "Try 'submit_slurm.sh --help' for more information." >&2
-            exit 2
-            ;;
-    esac
+  case $1 in
+  -n | --name)
+    ARG_NAME="$2"
+    shift 2
+    ;;
+  --name=*)
+    ARG_NAME="${1#*=}"
+    shift
+    ;;
+  -l | --lang)
+    ARG_LANG="$2"
+    shift 2
+    ;;
+  --lang=*)
+    ARG_LANG="${1#*=}"
+    shift
+    ;;
+  -d | --dry-run)
+    DRY_RUN=true
+    shift
+    ;;
+  -h | --help)
+    show_help
+    exit 0
+    ;;
+  -*)
+    echo "Error: Unknown option $1" >&2
+    echo "Try 'submit_slurm.sh --help' for more information." >&2
+    exit 2
+    ;;
+  *)
+    echo "Error: Unexpected argument '$1'" >&2
+    echo "Try 'submit_slurm.sh --help' for more information." >&2
+    exit 2
+    ;;
+  esac
 done
 
 # Apply priority: CLI args > env vars
@@ -76,9 +76,9 @@ NAME="${ARG_NAME:-$NAME}"
 
 # Validate required --name argument
 if [ -z "$NAME" ]; then
-    echo "Error: --name is required" >&2
-    echo "Try 'submit_slurm.sh --help' for more information." >&2
-    exit 2
+  echo "Error: --name is required" >&2
+  echo "Try 'submit_slurm.sh --help' for more information." >&2
+  exit 2
 fi
 
 source env/bin/activate
@@ -89,14 +89,14 @@ CONFIG_FILE="configs/${NAME}.json"
 
 # Validate language
 if [[ ! "$EXPERIMENT_LANG" =~ ^(python|julia)$ ]]; then
-    echo "Error: Invalid language '$EXPERIMENT_LANG'. Use 'python' or 'julia'." >&2
-    exit 1
+  echo "Error: Invalid language '$EXPERIMENT_LANG'. Use 'python' or 'julia'." >&2
+  exit 1
 fi
 
 # Validate config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Error: Config file not found: $CONFIG_FILE" >&2
-    exit 1
+  echo "Error: Config file not found: $CONFIG_FILE" >&2
+  exit 1
 fi
 
 # Get number of parameter combinations
@@ -152,10 +152,10 @@ echo "Submitting $PARAM_COMBINATIONS jobs..."
 echo "Command: $SBATCH_CMD"
 
 if [ "$DRY_RUN" = true ]; then
-    echo ""
-    echo "(dry-run mode - command not executed)"
+  echo ""
+  echo "(dry-run mode - command not executed)"
 else
-    eval $SBATCH_CMD
+  eval $SBATCH_CMD
 fi
 
 deactivate

@@ -2,31 +2,37 @@ import json
 import os
 import random
 
-import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.pyplot as plt
 
 SECRETS_FILE = "secrets.json"
+
 
 def load_api_key(key_name, secrets_file=SECRETS_FILE):
     """Return an API key from the local secrets file, falling back to the environment variable."""
     if os.path.exists(secrets_file):
-        with open(secrets_file, 'r') as f:
+        with open(secrets_file, "r") as f:
             secrets = json.load(f)
         if secrets.get(key_name):
             return secrets[key_name]
     key = os.environ.get(key_name)
     if not key:
-        raise RuntimeError(f"{key_name} not found in {secrets_file} or as an environment variable.")
+        raise RuntimeError(
+            f"{key_name} not found in {secrets_file} or as an environment variable."
+        )
     return key
+
 
 def set_seeds(seed):
     """Set random seeds for reproducibility (random, numpy, torch)."""
     import numpy as np
     import torch
+
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
 
 def get_fig_dim(width, fraction=1, aspect_ratio=None):
     """Set figure dimensions to avoid scaling in LaTeX.
@@ -53,7 +59,7 @@ def get_fig_dim(width, fraction=1, aspect_ratio=None):
 
     if aspect_ratio is None:
         # If not specified, set the aspect ratio equal to the Golden ratio (https://en.wikipedia.org/wiki/Golden_ratio)
-        aspect_ratio = (1 + 5**.5) / 2
+        aspect_ratio = (1 + 5**0.5) / 2
 
     # Figure width in inches
     fig_width_in = fig_width_pt * inches_per_pt
@@ -65,7 +71,14 @@ def get_fig_dim(width, fraction=1, aspect_ratio=None):
     return fig_dim
 
 
-def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, small_font_size=None, usetex=True, use_defaults=False):
+def latexify(
+    font_serif="Computer Modern",
+    mathtext_font="cm",
+    font_size=10,
+    small_font_size=None,
+    usetex=True,
+    use_defaults=False,
+):
     """Set up matplotlib's RC params for LaTeX plotting."""
 
     if use_defaults:
@@ -78,13 +91,24 @@ def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, sma
 
     # Get available fonts
     import matplotlib.font_manager as fm
+
     available_fonts = {f.name for f in fm.fontManager.ttflist}
 
     # Define fallback chains for common font families
     font_fallbacks = {
-        'Times New Roman': ['Times New Roman', 'Times', 'Liberation Serif', 'DejaVu Serif'],
-        'Computer Modern': ['Computer Modern', 'CMU Serif', 'Latin Modern Roman', 'cmr10'],
-        'Arial': ['Arial', 'Liberation Sans', 'DejaVu Sans'],
+        "Times New Roman": [
+            "Times New Roman",
+            "Times",
+            "Liberation Serif",
+            "DejaVu Serif",
+        ],
+        "Computer Modern": [
+            "Computer Modern",
+            "CMU Serif",
+            "Latin Modern Roman",
+            "cmr10",
+        ],
+        "Arial": ["Arial", "Liberation Sans", "DejaVu Sans"],
     }
 
     # Try to find the best available font
@@ -96,40 +120,41 @@ def latexify(font_serif='Computer Modern', mathtext_font='cm', font_size=10, sma
                 actual_font = fallback
                 # Only print message if not using LaTeX and had to fall back
                 if fallback != font_serif and not usetex:
-                    print(f"Font '{font_serif}' not found, using '{actual_font}' instead")
+                    print(
+                        f"Font '{font_serif}' not found, using '{actual_font}' instead"
+                    )
                 break
         else:
             if not usetex:
-                print(f"Warning: Neither '{font_serif}' nor fallbacks found. Using default.")
+                print(
+                    f"Warning: Neither '{font_serif}' nor fallbacks found. Using default."
+                )
     elif font_serif not in available_fonts and not usetex:
         print(f"Warning: Font '{font_serif}' not found. Using default.")
 
     params = {
-        'backend': 'ps',
-        'text.latex.preamble': r'\usepackage{gensymb} \usepackage{bm}',
-
-        'axes.labelsize': font_size,
-        'axes.titlesize': font_size,
-        'font.size': font_size,
-
+        "backend": "ps",
+        "text.latex.preamble": r"\usepackage{gensymb} \usepackage{bm}",
+        "axes.labelsize": font_size,
+        "axes.titlesize": font_size,
+        "font.size": font_size,
         # Optionally set a smaller font size for legends and tick labels
-        'legend.fontsize': small_font_size,
-        'legend.title_fontsize': small_font_size,
-        'xtick.labelsize': small_font_size,
-        'ytick.labelsize': small_font_size,
-
-        'text.usetex': usetex,
-        'font.family': 'serif',
-        'mathtext.fontset': mathtext_font
+        "legend.fontsize": small_font_size,
+        "legend.title_fontsize": small_font_size,
+        "xtick.labelsize": small_font_size,
+        "ytick.labelsize": small_font_size,
+        "text.usetex": usetex,
+        "font.family": "serif",
+        "mathtext.fontset": mathtext_font,
     }
 
     # Only set font.serif if not using LaTeX (LaTeX handles fonts itself)
     if not usetex:
-        params['font.serif'] = actual_font
+        params["font.serif"] = actual_font
 
     # Fix the mathtext warning
-    if not usetex and 'cm' in actual_font.lower():
-        params['axes.formatter.use_mathtext'] = True
+    if not usetex and "cm" in actual_font.lower():
+        params["axes.formatter.use_mathtext"] = True
 
     matplotlib.rcParams.update(params)
     plt.rcParams.update(params)

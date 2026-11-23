@@ -1,14 +1,20 @@
-import numpy as np
-import click
 import json
 import logging
 import os
 import sys
 
+import click
+import numpy as np
+
 from utils import set_seeds
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    stream=sys.stdout,
+)
 logger = logging.getLogger(__name__)
+
 
 # convert numpy types to native python types
 def convert_to_native(obj):
@@ -20,6 +26,7 @@ def convert_to_native(obj):
         return [convert_to_native(i) for i in obj]
     else:
         return obj
+
 
 # let the N people vote each other at random. with probability prob, a person does not vote
 def compute(N, prob, rng):
@@ -39,6 +46,7 @@ def compute(N, prob, rng):
 
     return votes, abstained
 
+
 # run the experiment for a single seed
 def single_seed_experiment(rng, N, iterations, prob):
 
@@ -46,7 +54,7 @@ def single_seed_experiment(rng, N, iterations, prob):
     abstained_results = np.zeros(iterations, dtype=int)
     winner_results = np.zeros(iterations, dtype=int)
 
-    logger.info('Computing...')
+    logger.info("Computing...")
     for i in range(iterations):
         # perform computation
         votes, abstained = compute(N, prob, rng)
@@ -60,30 +68,39 @@ def single_seed_experiment(rng, N, iterations, prob):
     most_common_winner = np.argmax(np.bincount(winner_results))
 
     return {
-        'avg_num_abstained': avg_num_abstained,
-        'most_common_winner': most_common_winner
+        "avg_num_abstained": avg_num_abstained,
+        "most_common_winner": most_common_winner,
     }
 
 
 # comment the click commands for testing
 @click.command()
 # the first three options are specified by the executor
-@click.option('--exp_name', type=str, required=True, help="name of the experiment")
-@click.option('--output_dir', type=str, required=True, help="output directory")
-@click.option('--output_filename', type=str, required=True, help="output filename")
+@click.option("--exp_name", type=str, required=True, help="name of the experiment")
+@click.option("--output_dir", type=str, required=True, help="output directory")
+@click.option("--output_filename", type=str, required=True, help="output filename")
 # the rest are experiment-specific
-@click.option('--N', type=int, required=True, help="number of voters")
-@click.option('--iterations', type=int, required=True, help="rounds of voting")
-@click.option('--prob', type=float, default=0.1, help="probability of abstaining")
-@click.option('--master_seed', type=int, default=42, help="the master seed for generating seeds")
-@click.option('--num_seeds', type=int, default=0, help="number of derived seeds (0 = use master_seed directly)")
-def experiment(exp_name, output_dir, output_filename, n, iterations, prob, master_seed, num_seeds):
+@click.option("--N", type=int, required=True, help="number of voters")
+@click.option("--iterations", type=int, required=True, help="rounds of voting")
+@click.option("--prob", type=float, default=0.1, help="probability of abstaining")
+@click.option(
+    "--master_seed", type=int, default=42, help="the master seed for generating seeds"
+)
+@click.option(
+    "--num_seeds",
+    type=int,
+    default=0,
+    help="number of derived seeds (0 = use master_seed directly)",
+)
+def experiment(
+    exp_name, output_dir, output_filename, n, iterations, prob, master_seed, num_seeds
+):
 
     N = n  # click doesn't accept upper case arguments
 
     # make sure N>1
     if N < 2:
-        raise ValueError('N must be greater than 1')
+        raise ValueError("N must be greater than 1")
 
     # set seeds for reproducibility
     set_seeds(master_seed)
@@ -95,7 +112,7 @@ def experiment(exp_name, output_dir, output_filename, n, iterations, prob, maste
     else:
         # multi-seed mode: derive seeds from master_seed
         master_rng = np.random.default_rng(seed=master_seed)
-        seeds = master_rng.integers(low=0, high=2**32-1, size=num_seeds)
+        seeds = master_rng.integers(low=0, high=2**32 - 1, size=num_seeds)
 
     # collect seed results
     seed_results = []
@@ -104,37 +121,35 @@ def experiment(exp_name, output_dir, output_filename, n, iterations, prob, maste
         rng = np.random.default_rng(seed=seed)
         # run the experiment
         result = single_seed_experiment(rng, N, iterations, prob)
-        result['seed'] = int(seed)
+        result["seed"] = int(seed)
         seed_results.append(result)
 
     # build flat output structure
     output = {
-        'exp_name': exp_name,
-        'N': N,
-        'iterations': iterations,
-        'prob': prob,
-        'master_seed': master_seed,
-        'num_seeds': num_seeds,
-        'seed_results': seed_results
+        "exp_name": exp_name,
+        "N": N,
+        "iterations": iterations,
+        "prob": prob,
+        "master_seed": master_seed,
+        "num_seeds": num_seeds,
+        "seed_results": seed_results,
     }
 
-    logger.info('Converting to native Python types...')
+    logger.info("Converting to native Python types...")
     output = convert_to_native(output)
 
     # create output directory
     # this is not done in the executor, so that we don't create output directories for parameter combinations that are scheduled on slurm but perhaps not valid
     os.makedirs(output_dir, exist_ok=True)
 
-    logger.info('Saving results...')
-    with open(f'{output_dir}/{output_filename}', 'w') as f:
+    logger.info("Saving results...")
+    with open(f"{output_dir}/{output_filename}", "w") as f:
         json.dump(output, f, indent=2)
 
-    logger.info('Done!')
-
-    return
+    logger.info("Done!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # comment for testing
     experiment()
     # uncomment for testing
